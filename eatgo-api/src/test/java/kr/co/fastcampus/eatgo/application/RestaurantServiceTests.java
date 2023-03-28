@@ -36,7 +36,11 @@ class RestaurantServiceTests {
 
     private void mockRestaurantRepository() {
         List<Restaurant> restaurants = new ArrayList<>();
-        Restaurant restaurant = new Restaurant(1004L, "Bob Jip", "Seoul");
+        Restaurant restaurant = Restaurant.builder()
+                .id(1004L)
+                .name("Bob Jip")
+                .address("Seoul")
+                .build();
         restaurants.add(restaurant);
 
         given(restaurantRepository.findAll()).willReturn(restaurants);
@@ -45,7 +49,9 @@ class RestaurantServiceTests {
 
     private void mockMenuItemRepository() {
         List<MenuItem> menuItems = new ArrayList<>();
-        menuItems.add(new MenuItem("Kimchi"));
+        menuItems.add(MenuItem.builder()
+                .name("Kimchi")
+                .build());
 
         given(menuItemRepository.findAllByRestaurantId(1004L))
                 .willReturn(menuItems);
@@ -71,13 +77,39 @@ class RestaurantServiceTests {
 
     @Test
     public void addRestaurant() {
-        Restaurant restaurant = new Restaurant("BeRyong", "Seoul");
-        Restaurant saved = new Restaurant(1234L, "BeRyong", "Seoul");
+        given(restaurantRepository.save(any())).will(invocation -> {
+            Restaurant restaurant = invocation.getArgument(0);
+            restaurant.setId(1234L);
+            return restaurant;
+        });
 
-        given(restaurantRepository.save(any())).willReturn(saved);
+        Restaurant restaurant = Restaurant.builder()
+                .name("Bob Jip")
+                .address("Seoul")
+                .build();
+        Restaurant saved = Restaurant.builder()
+                .id(1234L)
+                .name("BeRyong")
+                .address("Seoul")
+                .build();
 
         Restaurant created = restaurantService.addRestaurant(restaurant);
 
         assertThat(created.getId(), is(1234L));
     }
+
+    @Test
+    public void updateRestaurant() {
+        Restaurant restaurant = Restaurant.builder()
+                .id(1004L)
+                .name("BeRyong")
+                .address("Seoul")
+                .build();
+
+        given(restaurantRepository.findById(1004L)).willReturn(Optional.of(restaurant));
+        restaurantService.updateRestaurant(1004L, "Good", "Busan");
+
+        assertThat(restaurant.getName(), is("Good"));
+    }
+
 }

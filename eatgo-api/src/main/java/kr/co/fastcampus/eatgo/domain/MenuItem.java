@@ -3,21 +3,22 @@ package kr.co.fastcampus.eatgo.domain;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MenuItem {
     @Id
     @GeneratedValue
     private Long id;
 
     private Long restaurantId;
-    private final String name;
 
-    public MenuItem(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
+    private String name;
 }

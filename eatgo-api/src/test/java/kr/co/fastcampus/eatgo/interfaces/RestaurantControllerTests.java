@@ -3,6 +3,7 @@ package kr.co.fastcampus.eatgo.interfaces;
 import kr.co.fastcampus.eatgo.application.RestaurantService;
 import kr.co.fastcampus.eatgo.domain.MenuItem;
 import kr.co.fastcampus.eatgo.domain.Restaurant;
+import kr.co.fastcampus.eatgo.domain.RestaurantNotFoundException;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -47,7 +49,7 @@ public class RestaurantControllerTests {
     }
 
     @Test
-    public void detail() throws Exception {
+    public void detailWithExisted() throws Exception {
         Restaurant restaurant = Restaurant.builder()
                 .id(1004L)
                 .name("Bob Jip")
@@ -66,9 +68,20 @@ public class RestaurantControllerTests {
     }
 
     @Test
-    public void create() throws Exception {
+    public void detailWithNotExisted() throws Exception {
+        given(restaurantService.getRestaurant(404L))
+                .willThrow(new RestaurantNotFoundException(404L));
+
+        mvc.perform(get("/restaurants/404"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("{}"));
+    }
+
+    @Test
+    public void createWithValidData() throws Exception {
         given(restaurantService.addRestaurant(any())).will(invocation -> {
             Restaurant restaurant = invocation.getArgument(0);
+
             return Restaurant.builder()
                     .id(1234L)
                     .name(restaurant.getName())
@@ -87,12 +100,28 @@ public class RestaurantControllerTests {
     }
 
     @Test
-    public void update() throws Exception {
+    public void createWithInvalidData() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.post("/restaurants")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\", \"address\":\"\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void updateWithValidData() throws Exception {
         mvc.perform(MockMvcRequestBuilders.patch("/restaurants/1004")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Good\", \"address\":\"Seoul\"}"))
                 .andExpect(status().isOk());
 
         verify(restaurantService).updateRestaurant(1004L, "Good", "Seoul");
+    }
+
+    @Test
+    public void updateWithInvalidData() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.patch("/restaurants/1004")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\", \"address\":\"\"}"))
+                .andExpect(status().isBadRequest());
     }
 }

@@ -4,7 +4,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +21,11 @@ public class Restaurant {
     @GeneratedValue
     @Setter
     private Long id;
+
+    @NotEmpty
     private String name;
+
+    @NotEmpty
     private String address;
 
     @Transient
